@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
+#include <omp.h>
 
-#define MAX_POINTS 500
-#define HEIGHT 500
-#define WIDTH 500
+#define MAX_POINTS 5
+#define HEIGHT 100
+#define WIDTH 100
 
 int x[MAX_POINTS];
 int y[MAX_POINTS];
@@ -65,6 +67,9 @@ int resetDistance(){
 #define frand(x) (rand() / (1. + RAND_MAX) * x)
 int main(int argc, char **argv) {
 
+	clock_t prgstart, prgende;
+	prgstart=clock();
+
 	// argc should be 2 for correct execution
 	if ( argc != 2 ) {
 		printf( "usage: %s coordinates.txt (max. 500 points)\n", argv[0] );
@@ -81,7 +86,12 @@ int main(int argc, char **argv) {
 		fclose(infile);
 
 
-
+		int T[4];
+		T[0] = 0;
+		T[1] = 0;
+		T[2] = 0;
+		T[3] = 0;
+		int NumOfIters = 0;
 		int i,j,k;
 		double distance;
 		double tempDistance = resetDistance();
@@ -98,19 +108,47 @@ int main(int argc, char **argv) {
 		}
 
 		// iterate through each pixel from HEIGHT x WEIGHT and calculate the distance to our given points.
+
+		#pragma omp parallel for collapse(3) private(k,j)
 		for(i = 0; i < HEIGHT; i++){
 			for(k = 0; k < WIDTH; k++){
 				for(j = 0; j < pointsFromFile; j++){
+
 					distance = calculateDistance(width[k],height[i],x[j],y[j]);
+
 					if (distance < tempDistance){
 						tempDistance = distance;
 						saveColor[i][k] = j;
 					}
+
+					// reset distance if last loop iteration
+					if(j == pointsFromFile-1){
+						tempDistance = resetDistance();
+					}
+
+					#pragma omp critical
+					NumOfIters++;
+					#pragma omp end critical
+
+					T[omp_get_thread_num()]++;
+
 				}
-				tempDistance = resetDistance();
 			}
 		}
 
+
+
+		printf("Thread 1: %d Rechnungen\n", T[0]);
+		printf("Thread 2: %d Rechnungen\n", T[1]);
+		printf("Thread 3: %d Rechnungen\n", T[2]);
+		printf("Thread 4: %d Rechnungen\n", T[3]);
+		printf("NumofIters: %d\n", NumOfIters);
+
+//		for(i = 0; i < HEIGHT; i++){
+//					for(k = 0; k < WIDTH; k++){
+//						printf("X:%d Y:%d = %d\n",k,i,saveColor[i][k]);
+//					}
+//		}
 
 		// OpenGL stuff
 		glutInit ( &argc, argv );
@@ -123,7 +161,14 @@ int main(int argc, char **argv) {
 		glLoadIdentity ( );
 		gluOrtho2D(0.0,(GLdouble)ww,0.0,(GLdouble)wh);
 		glutDisplayFunc ( draw );
+
+		prgende=clock();
+		printf("Laufzeit %.2f Sekunden\n",(float)(prgende-prgstart) / CLOCKS_PER_SEC);
+
 		glutMainLoop ();
+
+
+
 	}
 
 
