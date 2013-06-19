@@ -5,9 +5,9 @@
 #include <time.h>
 #include <omp.h>
 
-#define MAX_POINTS 5
-#define HEIGHT 100
-#define WIDTH 100
+#define MAX_POINTS 500
+#define HEIGHT 500
+#define WIDTH 500
 
 int x[MAX_POINTS];
 int y[MAX_POINTS];
@@ -17,6 +17,7 @@ int height[HEIGHT];
 int width[WIDTH];
 
 int saveColor[HEIGHT][WIDTH];
+double saveDistance[HEIGHT][WIDTH][MAX_POINTS];
 
 int pointsFromFile = -1;
 
@@ -30,18 +31,23 @@ void draw()
 	glClear ( GL_COLOR_BUFFER_BIT ); //clear pixel buffer
 
 	int i,j,k;
+	double shortestDistance = HEIGHT*WIDTH;
 
 	for(i = 0; i < HEIGHT; i++){
 		for(j = 0; j < WIDTH; j++){
 
 			for(k = 0; k < pointsFromFile; k++){
-				if(saveColor[i][j] == k){
+
+				if(saveDistance[i][j][k] < shortestDistance){
+					shortestDistance = saveDistance[i][j][k];
 					glBegin(GL_POINTS); // render with points
 					glColor3ub(rgb[k*3],rgb[k*3+1],rgb[k*3+2]); // die Farbe setzt sich aus drei aufeinanderfolgenden Werten im Array zusammen
 					glVertex2i(width[j],height[i]);
 					glEnd();
 				}
 			}
+			// reset shortestDistance for each Point
+			shortestDistance = resetDistance();
 		}
 	}
 
@@ -91,6 +97,8 @@ int main(int argc, char **argv) {
 		T[1] = 0;
 		T[2] = 0;
 		T[3] = 0;
+		int A[4][2];
+
 		int NumOfIters = 0;
 		int i,j,k;
 		double distance;
@@ -109,27 +117,12 @@ int main(int argc, char **argv) {
 
 		// iterate through each pixel from HEIGHT x WEIGHT and calculate the distance to our given points.
 
-		#pragma omp parallel for collapse(3) private(k,j)
+		#pragma omp parallel for private(j,k)
 		for(i = 0; i < HEIGHT; i++){
 			for(k = 0; k < WIDTH; k++){
 				for(j = 0; j < pointsFromFile; j++){
-
 					distance = calculateDistance(width[k],height[i],x[j],y[j]);
-
-					if (distance < tempDistance){
-						tempDistance = distance;
-						saveColor[i][k] = j;
-					}
-
-					// reset distance if last loop iteration
-					if(j == pointsFromFile-1){
-						tempDistance = resetDistance();
-					}
-
-					#pragma omp critical
-					NumOfIters++;
-					#pragma omp end critical
-
+					saveDistance[i][k][j] = distance;
 					T[omp_get_thread_num()]++;
 
 				}
@@ -138,15 +131,17 @@ int main(int argc, char **argv) {
 
 
 
-		printf("Thread 1: %d Rechnungen\n", T[0]);
-		printf("Thread 2: %d Rechnungen\n", T[1]);
-		printf("Thread 3: %d Rechnungen\n", T[2]);
-		printf("Thread 4: %d Rechnungen\n", T[3]);
-		printf("NumofIters: %d\n", NumOfIters);
+		printf("Thread 1: %d calculations\n", T[0]);
+		printf("Thread 2: %d calculations\n", T[1]);
+		printf("Thread 3: %d calculations\n", T[2]);
+		printf("Thread 4: %d calculations\n", T[3]);
+
 
 //		for(i = 0; i < HEIGHT; i++){
 //					for(k = 0; k < WIDTH; k++){
-//						printf("X:%d Y:%d = %d\n",k,i,saveColor[i][k]);
+//						for(j = 0; j < MAX_POINTS; j++){
+//							printf("distance from point: %d to X: %d Y: %d = %F\n",j,i,k,saveDistance[i][k][j]);
+//						}
 //					}
 //		}
 
@@ -163,7 +158,7 @@ int main(int argc, char **argv) {
 		glutDisplayFunc ( draw );
 
 		prgende=clock();
-		printf("Laufzeit %.2f Sekunden\n",(float)(prgende-prgstart) / CLOCKS_PER_SEC);
+		printf("Laufzeit %.2f Sekunden\n",((float)(prgende-prgstart) / CLOCKS_PER_SEC)/4);
 
 		glutMainLoop ();
 
