@@ -5,7 +5,7 @@
 #include <time.h>
 #include <omp.h>
 
-#define MAX_POINTS 500
+#define MAX_POINTS 100
 #define HEIGHT 600
 #define WIDTH 1200
 
@@ -69,8 +69,7 @@ int main(int argc, char **argv) {
 	double distance = 0.0;
 	double tempDistance = 0.0;
 
-	clock_t prgstart, prgende;
-	prgstart=clock();
+
 
 	// argc should be 2 for correct execution
 	if ( argc != 2 ) {
@@ -93,6 +92,9 @@ int main(int argc, char **argv) {
 			rgb[i] = frand(256);
 		}
 
+		double prgstart, prgende;
+		prgstart=omp_get_wtime();
+
 		// iterate through each pixel from HEIGHT x WEIGHT and calculate the distance to our given points.
 
 		#pragma omp parallel for private(k,j, distance, tempDistance)
@@ -107,21 +109,18 @@ int main(int argc, char **argv) {
 						tempDistance = distance;
 						saveColor[i][k] = j;
 					}
-
-					T[omp_get_thread_num()]++;
-
+					//T[omp_get_thread_num()]++;
 				}
-
 			}
 		}
 
-		printf("Thread 1: %d Rechnungen\n", T[0]);
-		printf("Thread 2: %d Rechnungen\n", T[1]);
-		printf("Thread 3: %d Rechnungen\n", T[2]);
-		printf("Thread 4: %d Rechnungen\n", T[3]);
+//		printf("Thread 1: %d Rechnungen\n", T[0]);
+//		printf("Thread 2: %d Rechnungen\n", T[1]);
+//		printf("Thread 3: %d Rechnungen\n", T[2]);
+//		printf("Thread 4: %d Rechnungen\n", T[3]);
 
-		prgende=clock();
-		printf("Laufzeit %.2f Sekunden\n",((float)(prgende-prgstart) / CLOCKS_PER_SEC)/4);
+		prgende=omp_get_wtime();
+		printf("Laufzeit %.2f Sekunden\n",prgende-prgstart);
 
 		// OpenGL stuff
 		glutInit ( &argc, argv );
