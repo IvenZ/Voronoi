@@ -5,9 +5,9 @@
 #include <time.h>
 #include <omp.h>
 
-#define MAX_POINTS 5
-#define HEIGHT 100
-#define WIDTH 100
+#define MAX_POINTS 500
+#define HEIGHT 600
+#define WIDTH 1200
 
 int x[MAX_POINTS];
 int y[MAX_POINTS];
@@ -18,7 +18,7 @@ int width[WIDTH];
 
 int saveColor[HEIGHT][WIDTH];
 
-int pointsFromFile = -1;
+int pointsFromFileCounter = 0;
 
 
 GLsizei wh = HEIGHT ; // initial height of window
@@ -29,19 +29,15 @@ void draw()
 {
 	glClear ( GL_COLOR_BUFFER_BIT ); //clear pixel buffer
 
-	int i,j,k;
+	int i,j;
 
 	for(i = 0; i < HEIGHT; i++){
 		for(j = 0; j < WIDTH; j++){
-
-			for(k = 0; k < pointsFromFile; k++){
-				if(saveColor[i][j] == k){
-					glBegin(GL_POINTS); // render with points
-					glColor3ub(rgb[k*3],rgb[k*3+1],rgb[k*3+2]); // die Farbe setzt sich aus drei aufeinanderfolgenden Werten im Array zusammen
-					glVertex2i(width[j],height[i]);
-					glEnd();
-				}
-			}
+			int k = saveColor[i][j];
+			glBegin(GL_POINTS); // render with points
+			glColor3ub(rgb[k*3],rgb[k*3+1],rgb[k*3+2]); // die Farbe setzt sich aus drei aufeinanderfolgenden Werten im Array zusammen
+			glVertex2i(j,i);
+			glEnd();
 		}
 	}
 
@@ -49,11 +45,10 @@ void draw()
 	glPointSize(2.0f);
 	glBegin(GL_POINTS);
 	glColor3f(0.0f, 0.0f,0.0f); // black drawing color
-	for(i = 0; i < pointsFromFile; i++){
+	for(i = 0; i < pointsFromFileCounter; i++){
 		glVertex2i(x[i],y[i]);
 	}
 	glEnd();
-
 	glFlush();
 }
 
@@ -67,6 +62,13 @@ int resetDistance(){
 #define frand(x) (rand() / (1. + RAND_MAX) * x)
 int main(int argc, char **argv) {
 
+	int i=0;
+	int j=0;
+	int k=0;
+	int T[] = { 0,0,0,0 };
+	double distance = 0.0;
+	double tempDistance = 0.0;
+
 	clock_t prgstart, prgende;
 	prgstart=clock();
 
@@ -79,76 +81,47 @@ int main(int argc, char **argv) {
 		FILE *infile;
 		infile = fopen(argv[1], "r");
 
-		while(!feof(infile)) {
-			pointsFromFile++;
-			fscanf(infile,"%d %d",&x[pointsFromFile],&y[pointsFromFile]);
+		while(i < MAX_POINTS) {
+			fscanf(infile,"%d %d",&x[pointsFromFileCounter],&y[pointsFromFileCounter]);
+			i++;
+			pointsFromFileCounter++;
 		}
 		fclose(infile);
 
-
-		int T[4];
-		T[0] = 0;
-		T[1] = 0;
-		T[2] = 0;
-		T[3] = 0;
-		int NumOfIters = 0;
-		int i,j,k;
-		double distance;
-		double tempDistance = resetDistance();
-
-		// fill width and height. (its only possible, cause height and width is the same!)
-		for(i = 0; i < WIDTH; i++) {
-			width[i] = i;
-			height[i] = i;
-		}
-
 		// generate random colors
-		for(i = 0; i < (pointsFromFile)*3; i++) {
+		for(i = 0; i < (pointsFromFileCounter)*3; i++) {
 			rgb[i] = frand(256);
 		}
 
 		// iterate through each pixel from HEIGHT x WEIGHT and calculate the distance to our given points.
 
-		#pragma omp parallel for collapse(3) private(k,j)
+		#pragma omp parallel for private(k,j, distance, tempDistance)
 		for(i = 0; i < HEIGHT; i++){
 			for(k = 0; k < WIDTH; k++){
-				for(j = 0; j < pointsFromFile; j++){
+				tempDistance = resetDistance();
+				for(j = 0; j < pointsFromFileCounter; j++){
 
-					distance = calculateDistance(width[k],height[i],x[j],y[j]);
+					distance = calculateDistance(k,i,x[j],y[j]);
 
 					if (distance < tempDistance){
 						tempDistance = distance;
 						saveColor[i][k] = j;
 					}
 
-					// reset distance if last loop iteration
-					if(j == pointsFromFile-1){
-						tempDistance = resetDistance();
-					}
-
-					#pragma omp critical
-					NumOfIters++;
-					#pragma omp end critical
-
 					T[omp_get_thread_num()]++;
 
 				}
+
 			}
 		}
-
-
 
 		printf("Thread 1: %d Rechnungen\n", T[0]);
 		printf("Thread 2: %d Rechnungen\n", T[1]);
 		printf("Thread 3: %d Rechnungen\n", T[2]);
 		printf("Thread 4: %d Rechnungen\n", T[3]);
-		printf("NumofIters: %d\n", NumOfIters);
 
-//		for(i = 0; i < HEIGHT; i++){
-//					for(k = 0; k < WIDTH; k++){
-//						printf("X:%d Y:%d = %d\n",k,i,saveColor[i][k]);
-//					}
-//		}
+		prgende=clock();
+		printf("Laufzeit %.2f Sekunden\n",((float)(prgende-prgstart) / CLOCKS_PER_SEC)/4);
 
 		// OpenGL stuff
 		glutInit ( &argc, argv );
@@ -161,17 +134,7 @@ int main(int argc, char **argv) {
 		glLoadIdentity ( );
 		gluOrtho2D(0.0,(GLdouble)ww,0.0,(GLdouble)wh);
 		glutDisplayFunc ( draw );
-
-		prgende=clock();
-		printf("Laufzeit %.2f Sekunden\n",(float)(prgende-prgstart) / CLOCKS_PER_SEC);
-
 		glutMainLoop ();
-
-
-
 	}
-
-
-
 return 0;
 }
