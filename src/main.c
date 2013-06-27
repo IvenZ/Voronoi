@@ -5,7 +5,7 @@
 #include <time.h>
 #include <omp.h>
 
-#define MAX_POINTS 100
+#define MAX_POINTS 1000
 #define HEIGHT 600
 #define WIDTH 1200
 
