@@ -5,16 +5,13 @@
 #include <time.h>
 #include <omp.h>
 
-#define MAX_POINTS 1000
+#define MAX_POINTS 500
 #define HEIGHT 600
 #define WIDTH 1200
 
 int x[MAX_POINTS];
 int y[MAX_POINTS];
 unsigned char rgb[MAX_POINTS*3];
-
-int height[HEIGHT];
-int width[WIDTH];
 
 int saveColor[HEIGHT][WIDTH];
 
@@ -62,12 +59,6 @@ int resetDistance(){
 #define frand(x) (rand() / (1. + RAND_MAX) * x)
 int main(int argc, char **argv) {
 
-	int i=0;
-	int j=0;
-	int k=0;
-	int T[] = { 0,0,0,0 };
-	double distance = 0.0;
-	double tempDistance = 0.0;
 
 
 
@@ -79,6 +70,7 @@ int main(int argc, char **argv) {
 		// We assume argv[1] is a filename to open
 		FILE *infile;
 		infile = fopen(argv[1], "r");
+		int i=0;
 
 		while(i < MAX_POINTS) {
 			fscanf(infile,"%d %d",&x[pointsFromFileCounter],&y[pointsFromFileCounter]);
@@ -95,29 +87,33 @@ int main(int argc, char **argv) {
 		double prgstart, prgende;
 		prgstart=omp_get_wtime();
 
-		// iterate through each pixel from HEIGHT x WEIGHT and calculate the distance to our given points.
+		int max = WIDTH*HEIGHT*pointsFromFileCounter;
+		int p;
+		int point;
+		int width;
+		int height;
+		double distance;
+		double tempDistance;
 
-		#pragma omp parallel for private(k,j, distance, tempDistance)
-		for(i = 0; i < HEIGHT; i++){
-			for(k = 0; k < WIDTH; k++){
+		#pragma omp parallel for private(point, width, height, distance, tempDistance)
+		for (p = 0; p < max; p++) {
+			// reduce three loops to one
+			point = p % pointsFromFileCounter;
+			width = (p / pointsFromFileCounter) % WIDTH;
+			height = ((p / pointsFromFileCounter / WIDTH)) % HEIGHT;
+
+			// reset tempDistance after iterating through each point
+			if(p%pointsFromFileCounter == 0){
 				tempDistance = resetDistance();
-				for(j = 0; j < pointsFromFileCounter; j++){
+			}
 
-					distance = calculateDistance(k,i,x[j],y[j]);
+			distance = calculateDistance(width,height,x[point],y[point]);
 
-					if (distance < tempDistance){
-						tempDistance = distance;
-						saveColor[i][k] = j;
-					}
-					//T[omp_get_thread_num()]++;
-				}
+			if (distance < tempDistance){
+				tempDistance = distance;
+				saveColor[height][width] = point;
 			}
 		}
-
-//		printf("Thread 1: %d Rechnungen\n", T[0]);
-//		printf("Thread 2: %d Rechnungen\n", T[1]);
-//		printf("Thread 3: %d Rechnungen\n", T[2]);
-//		printf("Thread 4: %d Rechnungen\n", T[3]);
 
 		prgende=omp_get_wtime();
 		printf("Laufzeit %.2f Sekunden\n",prgende-prgstart);
