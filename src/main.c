@@ -6,8 +6,8 @@
 #include <omp.h>
 
 #define MAX_POINTS 5
-#define HEIGHT 100
-#define WIDTH 100
+#define HEIGHT 600
+#define WIDTH 1200
 
 int x[MAX_POINTS];
 int y[MAX_POINTS];
@@ -21,6 +21,8 @@ int pointsFromFileCounter = 0;
 
 int numOfIters = 0;
 
+int saveColor[HEIGHT][WIDTH];
+
 
 GLsizei wh = HEIGHT ; // initial height of window
 GLsizei ww = WIDTH ; // initial width of window
@@ -30,20 +32,19 @@ void draw()
 {
 	glClear ( GL_COLOR_BUFFER_BIT ); //clear pixel buffer
 
-
+//	int i,j,k = 0;
 //	for(i = 0; i < HEIGHT; i++){
 //		for(j = 0; j < WIDTH; j++){
-//			int k = saveColor[i][j];
+//			k = saveColor[i][j];
 //			glBegin(GL_POINTS); // render with points
 //			glColor3ub(rgb[k*3],rgb[k*3+1],rgb[k*3+2]); // die Farbe setzt sich aus drei aufeinanderfolgenden Werten im Array zusammen
 //			glVertex2i(j,i);
 //			glEnd();
-//			printf("height:%d width:%d color:%d\n",i,j,saveColor[i][j]);
 //		}
 //	}
 
 	int i,j,k,z = 0;
-	int tempDistance = 0;
+	double tempDistance = HEIGHT*WIDTH;
 //////
 	for(i=0;i<HEIGHT;i++){
 		for(j=0;j<WIDTH;j++){
@@ -154,7 +155,7 @@ int main(int argc, char **argv) {
 		int height;
 
 
-		//#pragma omp parallel for private(point, width, height)
+		#pragma omp parallel for private(point, width, height)
 		for (p = 0; p < max; p++) {
 			// reduce three loops to one
 			point = p % pointsFromFileCounter;
@@ -195,6 +196,29 @@ int main(int argc, char **argv) {
 //				numOfIters++;
 //			}
 		}
+
+//		int j,k,z = 0;
+//		double tempDistance = HEIGHT*WIDTH;
+//
+//	//////
+//		for(i=0;i<HEIGHT;i++){
+//			for(j=0;j<WIDTH;j++){
+//				// geht immer nur die nächsten max_point vor.
+//				while(k < MAX_POINTS){
+//					//printf("%d %d point: %f\n",j, i,saveDistance[z]);
+//					if (saveDistance[z] < tempDistance){
+//						tempDistance = saveDistance[z];
+//						saveColor[i][j] = k;
+//						//printf("width: %d height: %d shortest: %f\n",j,i, saveDistance[z]);
+//					}
+//					k++;
+//					z++; // ist wie max
+//
+//				}
+//				tempDistance = HEIGHT*WIDTH;
+//				k = 0;
+//			}
+//		}
 
 
 //		for(i=0;i<max;i++){
