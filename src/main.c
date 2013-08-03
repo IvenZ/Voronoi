@@ -5,9 +5,9 @@
 #include <time.h>
 #include <omp.h>
 
-#define MAX_POINTS 500
-#define HEIGHT 600
-#define WIDTH 1200
+#define MAX_POINTS 5
+#define HEIGHT 100
+#define WIDTH 100
 
 int x[MAX_POINTS];
 int y[MAX_POINTS];
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 		double distance;
 		double tempDistance;
 
-		#pragma omp parallel for private(point, width, height, distance, tempDistance)
+		//#pragma omp parallel for private(point, width, height, distance, tempDistance)
 		for (p = 0; p < max; p++) {
 			// reduce three loops to one
 			point = p % pointsFromFileCounter;
@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
 			if (distance < tempDistance){
 				tempDistance = distance;
 				saveColor[height][width] = point;
+				printf("width: %d; height: %d  colorIndex: %d\n",width,height,point);
 			}
 		}
 
