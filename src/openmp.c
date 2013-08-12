@@ -2,7 +2,7 @@
  * openmp.c
  *
  *  Created on: Aug 12, 2013
- *      Author: iven
+ *      Author: Iven
  */
 
 #include <omp.h>

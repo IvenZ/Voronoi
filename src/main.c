@@ -17,7 +17,7 @@
 #include "openmp.h"
 #include "serial.h"
 
-#define MAX_POINTS 270 // exception at 274 in OpenCL :(
+#define MAX_POINTS 250 // crashes at 274 in OpenCL :(
 #define HEIGHT 600
 #define WIDTH 1200
 
@@ -152,6 +152,8 @@ int main (int argc, char **argv) {
 				}
 			}
 		}
+
+		free(results);
 
 		/**
 		 * Do all necessary OpenGL stuff

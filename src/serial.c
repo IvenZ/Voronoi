@@ -2,7 +2,7 @@
  * serial.c
  *
  *  Created on: Aug 12, 2013
- *      Author: iven
+ *      Author: Iven
  */
 
 #include "calcDistance.h"

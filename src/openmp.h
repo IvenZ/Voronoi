@@ -2,7 +2,7 @@
  * openmp.h
  *
  *  Created on: Aug 12, 2013
- *      Author: iven
+ *      Author: Iven
  */
 
 #ifndef OPENMP_H_
