@@ -1,8 +1,7 @@
 /*
  * opencl.h
  *
- *  Created on: Aug 12, 2013
- *      Author: Iven
+ * Author: Iven
  */
 
 #ifndef OPENCL_H_

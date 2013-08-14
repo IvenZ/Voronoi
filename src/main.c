@@ -1,10 +1,9 @@
 /*
- ============================================================================
- Name        : Voronoi
- Author      : Iven
- Description : Simple Voronoi diagram with graphical output (OpenGL)
- Usage		 : ./Voronoi coordinats.txt
- ============================================================================
+ * calcDistance.h
+ *
+ * Author		: Iven
+ * Description	: Simple Voronoi diagram with graphical output (OpenGL)
+ * Usage		: ./Voronoi coordinats.txt
  */
 
 #include <stdlib.h>
@@ -104,13 +103,13 @@ int main (int argc, char **argv) {
 		float * results = (float *)malloc(result_size*sizeof(float));
 		double prgstart, prgende;
 
-		// Do the OpenCL calculation and timing
+		// Do the serial calculation and timing
 		prgstart = omp_get_wtime();
 
-		runCL(x, y, results, result_size, pointsFromFileCounter, HEIGHT, WIDTH);
+		runSerial(x, y, results, result_size, pointsFromFileCounter, HEIGHT, WIDTH);
 
 		prgende = omp_get_wtime();
-		printf("OpenCL Laufzeit: %.2f Sekunden\n",prgende-prgstart);
+		printf("serielle Laufzeit: %.2f Sekunden\n",prgende-prgstart);
 
 		// Do the OpenMP calculation and timing
 		prgstart = omp_get_wtime();
@@ -120,13 +119,13 @@ int main (int argc, char **argv) {
 		prgende = omp_get_wtime();
 		printf("OpenMP Laufzeit: %.2f Sekunden\n",prgende-prgstart);
 
-		// Do the serial calculation and timing
+		// Do the OpenCL calculation and timing
 		prgstart = omp_get_wtime();
 
-		runSerial(x, y, results, result_size, pointsFromFileCounter, HEIGHT, WIDTH);
+		runCL(x, y, results, result_size, pointsFromFileCounter, HEIGHT, WIDTH);
 
 		prgende = omp_get_wtime();
-		printf("serielle Laufzeit: %.2f Sekunden\n",prgende-prgstart);
+		printf("OpenCL Laufzeit: %.2f Sekunden\n",prgende-prgstart);
 
 		/**
 		 * Evaluate shortest distance and save it as a colorIndex
@@ -173,3 +172,5 @@ int main (int argc, char **argv) {
 	}
     return EXIT_SUCCESS;
 }
+
+

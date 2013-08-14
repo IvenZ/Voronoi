@@ -1,8 +1,7 @@
 /*
  * openmp.c
  *
- *  Created on: Aug 12, 2013
- *      Author: Iven
+ * Author: Iven
  */
 
 #include <omp.h>

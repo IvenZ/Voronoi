@@ -1,8 +1,7 @@
 /*
  * serial.h
  *
- *  Created on: Aug 12, 2013
- *      Author: Iven
+ * Author: Iven
  */
 
 #ifndef SERIAL_H_
