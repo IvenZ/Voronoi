@@ -26,12 +26,18 @@ int x[MAX_POINTS];
 int y[MAX_POINTS];
 int pointsFromFileCounter = 0;
 
+/**
+ * Generate random colors.
+ * Draw each pixel with its assigned color.
+ * Draw every point from given file.
+ *
+ */
 void draw()
 {
 	int i,j,colorIndex;
 	unsigned char rgb[MAX_POINTS*3];
 
-	/**
+	/*
 	 * generate some random RGB colors consecutively
 	 * e.g. rgb[0]+rgb[1]+rgb[2] = yellow
 	 * 		rgb[3]+rgb[4]+rgb[5] = blue
@@ -41,9 +47,7 @@ void draw()
 		rgb[i] = rand() / (1. + RAND_MAX) * 256;
 	}
 
-	/**
-	 * draw every pixel with its assigned color
-	 */
+	// Draw every pixel with its assigned color
 	glClear ( GL_COLOR_BUFFER_BIT );
 	for(i = 0; i < HEIGHT; i++){
 		for(j = 0; j < WIDTH; j++){
@@ -55,9 +59,7 @@ void draw()
 		}
 	}
 
-	/**
-	 * draw every point from file twice the size of normal pixel
-	 */
+	// Draw every point from file twice the size of normal pixel
 	glPointSize(2.0f);
 	glBegin(GL_POINTS);
 	glColor3f(0.0f, 0.0f,0.0f); // black drawing color
@@ -69,9 +71,9 @@ void draw()
 }
 
 /**
- *	Read and save values from file
- *	Start OpenCL/OpenMP/Serial calculation
- *	Evaluate shortest distance and save it (colorIndex)
+ *	Read and save values from file.
+ *	Start OpenCL/OpenMP/Serial calculation.
+ *	Evaluate shortest distance and save it (colorIndex).
  */
 int main (int argc, char **argv) {
 
@@ -79,7 +81,8 @@ int main (int argc, char **argv) {
 			printf( "usage: %s coordinates.txt\n", argv[0] );
 	}
 	else {
-		/**
+
+		/*
 		 * Read file with coordinats
 		 * We assume argv[1] is the filename to open
 		 */
@@ -87,7 +90,7 @@ int main (int argc, char **argv) {
 		infile = fopen(argv[1], "r");
 		int i = 0;
 
-		/**
+		/*
 		 * Analyze file line per line and save x and y values
 		 * Increase pointsFromFileCounter to count actual pair of values in file
 		 */
@@ -127,9 +130,8 @@ int main (int argc, char **argv) {
 		prgende = omp_get_wtime();
 		printf("OpenCL Laufzeit: %.2f Sekunden\n",prgende-prgstart);
 
-		/**
-		 * Evaluate shortest distance and save it as a colorIndex
-		 */
+
+		// Evaluate shortest distance and save it as a colorIndex
 		int point, j;
 		int nCounter = 0;
 		double tempDistance;
@@ -154,9 +156,7 @@ int main (int argc, char **argv) {
 
 		free(results);
 
-		/**
-		 * Do all necessary OpenGL stuff
-		 */
+		// Do all necessary OpenGL stuff
 		glutInit ( &argc, argv );
 		glutInitDisplayMode ( GLUT_SINGLE | GLUT_RGB );
 		glutInitWindowSize ( (GLsizei)WIDTH, (GLsizei)HEIGHT );

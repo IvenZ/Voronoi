@@ -36,6 +36,17 @@ char * load_program_source(const char *filename)
 	return source;
 }
 
+/**
+ * Do all necessary OpenCL stuff and run the OpenCL calculation
+ * @param x	X values
+ * @param y Y values
+ * @param results	distance array
+ * @param size_results	number of calculations
+ * @param size_points	number of x,y value pairs
+ * @param size_height	windows height (number of x pixels)
+ * @param size_width	window width (numer of y pixels)
+ * @return
+ */
 int runCL(int * x, int * y, float * results, int size_results, int size_points, int size_height, int size_width)
 {
 	cl_program program[1];

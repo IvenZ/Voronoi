@@ -6,14 +6,24 @@
 
 #include "calcDistance.h"
 
-void runSerial(int * x, int * y, float * results, int size_results, int pointsFromFileCounter, int size_height, int size_width)
+/**
+ * Calculate each distance between all given points and every pixel in our window
+ * @param x	X values
+ * @param y	Y values
+ * @param results	distance array
+ * @param size_results	number of calculations
+ * @param size_points	number of x,y value pairs
+ * @param size_height	windows height (number of x pixels)
+ * @param size_width	window width (numer of y pixels)
+ */
+void runSerial(int * x, int * y, float * results, int size_results, int size_points, int size_height, int size_width)
 {
-	int i,width,height,point = 0;
+	int i,width,height,point;
 
 	for (i = 0; i < size_results; i++) {
-		point = i % pointsFromFileCounter;
-		width = (i / pointsFromFileCounter) % size_width;
-		height = ((i / pointsFromFileCounter / size_width)) % size_height;
+		point = i % size_points;
+		width = (i / size_points) % size_width;
+		height = ((i / size_points / size_width)) % size_height;
 
 		results[i] = calculateDistance(width,height,x[point],y[point]);
 	}
