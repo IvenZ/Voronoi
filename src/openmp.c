@@ -11,11 +11,11 @@
  * Calculate each distance between all given points and every pixel in our window
  * @param x	X values
  * @param y	Y values
- * @param results	distance array
+ * @param results	array to save the distance
  * @param size_results	number of calculations
  * @param size_points	number of x,y value pairs
  * @param size_height	windows height (number of x pixels)
- * @param size_width	window width (numer of y pixels)
+ * @param size_width	window width (number of y pixels)
  */
 void runOpenMP(int * x, int * y, float * results, int size_results, int size_points, int size_height, int size_width)
 {

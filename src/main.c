@@ -16,11 +16,11 @@
 #include "openmp.h"
 #include "serial.h"
 
-#define MAX_POINTS 250 // crashes at 274 in OpenCL :(
+#define MAX_POINTS 250
 #define HEIGHT 600
 #define WIDTH 1200
 
-// need global variables to access them in draw function
+// Need global variables to access them in draw function
 int saveColor[HEIGHT][WIDTH];
 int x[MAX_POINTS];
 int y[MAX_POINTS];
@@ -30,20 +30,19 @@ int pointsFromFileCounter = 0;
  * Generate random colors.
  * Draw each pixel with its assigned color.
  * Draw every point from given file.
- *
  */
 void draw()
 {
 	int i,j,colorIndex;
-	unsigned char rgb[MAX_POINTS*3];
+	unsigned char rgb[pointsFromFileCounter*3];
 
 	/*
-	 * generate some random RGB colors consecutively
+	 * Generate some random RGB colors consecutively
 	 * e.g. rgb[0]+rgb[1]+rgb[2] = yellow
 	 * 		rgb[3]+rgb[4]+rgb[5] = blue
 	 * 		and so on ...
 	 */
-	for(i = 0; i < (MAX_POINTS)*3; i++) {
+	for(i = 0; i < (pointsFromFileCounter)*3; i++) {
 		rgb[i] = rand() / (1. + RAND_MAX) * 256;
 	}
 
@@ -74,6 +73,7 @@ void draw()
  *	Read and save values from file.
  *	Start OpenCL/OpenMP/Serial calculation.
  *	Evaluate shortest distance and save it (colorIndex).
+ *	Do OpenGL initialization.
  */
 int main (int argc, char **argv) {
 
@@ -98,10 +98,15 @@ int main (int argc, char **argv) {
 			fscanf(infile,"%d %d",&x[pointsFromFileCounter],&y[pointsFromFileCounter]);
 			i++;
 			pointsFromFileCounter++;
+			if (feof(infile))
+			{
+				i = MAX_POINTS;
+			}
 		}
+
 		fclose(infile);
 
-		// initialize and allocate some space for the results
+		// Initialize and allocate some space for the results
 		int result_size = HEIGHT*WIDTH*pointsFromFileCounter;
 		float * results = (float *)malloc(result_size*sizeof(float));
 		double prgstart, prgende;
@@ -139,10 +144,13 @@ int main (int argc, char **argv) {
 		for(i=0;i<HEIGHT;i++){
 			for(j=0;j<WIDTH;j++){
 
-				// reset tempDistance and point
+				// Reset tempDistance and point
 				tempDistance = HEIGHT*WIDTH; point = 0;
 
-				// compares next MAX_POINTS points to X,Y
+				/*
+				 * Compare all distances of each point from file to X,Y
+				 * Save the shortest as index
+				 */
 				while(point < pointsFromFileCounter){
 					if (results[nCounter] < tempDistance){
 						tempDistance = results[nCounter];
@@ -160,7 +168,7 @@ int main (int argc, char **argv) {
 		glutInit ( &argc, argv );
 		glutInitDisplayMode ( GLUT_SINGLE | GLUT_RGB );
 		glutInitWindowSize ( (GLsizei)WIDTH, (GLsizei)HEIGHT );
-		glutInitWindowPosition ( 100, 100 );
+		glutInitWindowPosition ( 70, 50 );
 		glutCreateWindow("Voronoi");
 		glClearColor ( 1.0, 1.0, 1.0, 0.0 ); //white background
 		glMatrixMode ( GL_PROJECTION );
