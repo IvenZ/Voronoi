@@ -68,12 +68,18 @@ int runCL(int * x, int * y, float * results, int size_results, int size_points, 
 	{
 		// Fetch available platform; we only want the first one
 		err = clGetPlatformIDs(1, &platform, &platforms);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clGetPlatformIDs fail! Errorcode = %d\n", err);
+		}
 		//printf("Number of available platforms = %d\n",platforms);
 
 		// Find the CPU CL device, as a fallback
 		err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &cpu, NULL);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clGetDeviceIDs fail! Errorcode = %d\n", err);
+		}
 
 		// Find the GPU CL device, this is what we really want
 		// If there is no GPU device is CL capable, fall back to CPU
@@ -88,7 +94,10 @@ int runCL(int * x, int * y, float * results, int size_results, int size_points, 
 							  vendor_name, &returned_size);
 		err |= clGetDeviceInfo(device, CL_DEVICE_NAME, sizeof(device_name),
 							  device_name, &returned_size);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clGetDeviceInfo fail! Errorcode = %d\n", err);
+		}
 		//printf("Connecting to %s %s...\n", vendor_name, device_name);
 	}
 
@@ -96,7 +105,10 @@ int runCL(int * x, int * y, float * results, int size_results, int size_points, 
 		// Now create a context to perform our calculation with the
 		// specified device
 		context = clCreateContext(0, 1, &device, NULL, NULL, &err);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clCreateContext fail! Errorcode = %d\n", err);
+		}
 
 		// And also a command queue for the context
 		cmd_queue = clCreateCommandQueue(context, device, 0, NULL);
@@ -110,10 +122,16 @@ int runCL(int * x, int * y, float * results, int size_results, int size_points, 
 		char *program_source = load_program_source(filename);
 		program[0] = clCreateProgramWithSource(context, 1, (const char**)&program_source,
 											   NULL, &err);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clCreateProgramWithSource fail! Errorcode = %d\n", err);
+		}
 
 		err = clBuildProgram(program[0], 0, NULL, NULL, NULL, NULL);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clBuildProgram fail! Errorcode = %d\n", err);
+		}
 
 		// Now create the kernel "objects" that we want to use in the example file
 		kernel[0] = clCreateKernel(program[0], "calculate", &err);
@@ -134,7 +152,10 @@ int runCL(int * x, int * y, float * results, int size_results, int size_points, 
 		y_mem = clCreateBuffer(context, CL_MEM_READ_ONLY, buffer_size_y, NULL, NULL);
 		err |= clEnqueueWriteBuffer(cmd_queue, y_mem, CL_TRUE, 0, buffer_size_y,
 									(void*)y, 0, NULL, NULL);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("Allocate memory on the device fail! Errorcode = %d\n", err);
+		}
 
 		// Results array
 		ans_mem	= clCreateBuffer(context, CL_MEM_READ_WRITE, buffer_size, NULL, NULL);
@@ -151,7 +172,10 @@ int runCL(int * x, int * y, float * results, int size_results, int size_points, 
 		err |= clSetKernelArg(kernel[0],  3, sizeof(int), &size_points);
 		err |= clSetKernelArg(kernel[0],  4, sizeof(int), &size_width);
 		err |= clSetKernelArg(kernel[0],  5, sizeof(int), &size_height);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clSetKernelArg fail! Errorcode = %d\n", err);
+		}
 	}
 
 	{
@@ -160,20 +184,26 @@ int runCL(int * x, int * y, float * results, int size_results, int size_points, 
 		size_t global_work_size = size_results;
 		err = clEnqueueNDRangeKernel(cmd_queue, kernel[0], 1, NULL,
 									 &global_work_size, NULL, 0, NULL, NULL);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clEnqueueNDRangeKernel fail! Errorcode = %d\n", err);
+		}
 		clFinish(cmd_queue);
 
 		// Once finished read back the results from the answer
 		// array into the results array
 		err = clEnqueueReadBuffer(cmd_queue, ans_mem, CL_TRUE, 0, buffer_size,
 								  results, 0, NULL, NULL);
-		assert(err == CL_SUCCESS);
+		if(err != CL_SUCCESS)
+		{
+			printf("clEnqueueReadBuffer fail! Errorcode = %d\n", err);
+		}
 		clFinish(cmd_queue);
 	}
 
 	{
 		clReleaseMemObject(x_mem);
-		clReleaseMemObject(x_mem);
+		clReleaseMemObject(y_mem);
 		clReleaseMemObject(ans_mem);
 
 		clReleaseCommandQueue(cmd_queue);

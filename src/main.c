@@ -107,7 +107,7 @@ int main (int argc, char **argv) {
 		fclose(infile);
 
 		// Initialize and allocate some space for the results
-		int result_size = HEIGHT*WIDTH*pointsFromFileCounter;
+		float result_size = HEIGHT*WIDTH*pointsFromFileCounter;
 		float * results = (float *)malloc(result_size*sizeof(float));
 		double prgstart, prgende;
 
